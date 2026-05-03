@@ -1,0 +1,41 @@
+# Modcat Dumper - Deployment Guide
+
+This folder contains the complete Next.js website for Modcat Dumper. It uses a chunked-upload strategy to bypass Vercel's strict 4.5MB payload limit, allowing users to upload massive `il2cpp` binaries directly from the browser to the Vercel server.
+
+## 1. Local Development
+
+1. Open a terminal in the `modcat-dumper` folder.
+2. Run `npm install` to install all dependencies.
+3. Run `npm run dev` to start the development server.
+4. Visit `http://localhost:3000`.
+
+## 2. Compiling the Backend Dumper for Vercel (Linux)
+
+Vercel Serverless functions run on Amazon Linux 2 (x86_64). Therefore, the API route `/api/dump` expects a native Linux executable named `dumper-linux` in the root of the `modcat-dumper` folder.
+
+Since your original `rodroid-il2cppdumper` codebase is tightly coupled with Tauri UI components (e.g., `AppHandle` and UI popups for manual input), it cannot run directly on a headless serverless environment without crashing.
+
+**You have two options:**
+
+### Option A: Use a Pre-compiled CLI Dumper (Recommended)
+The easiest way is to download the official headless CLI version of Il2CppDumper for Linux:
+1. Download the Linux x64 release of Il2CppDumper.
+2. Rename the executable to `dumper-linux`.
+3. Place `dumper-linux` inside the `modcat-dumper` folder.
+
+### Option B: Decouple your Rust code
+If you strictly want to use your custom Rust parser:
+1. You must refactor `src-tauri/src/lib.rs` to remove all `tauri::AppHandle` and GUI popup dependencies.
+2. Replace all `emit_log` calls with standard `println!()`.
+3. Compile it for Linux using: `cargo build --release --target x86_64-unknown-linux-gnu`
+4. Copy the compiled binary to `modcat-dumper/dumper-linux`.
+
+## 3. Deploying to Vercel
+
+1. Make sure `dumper-linux` is inside the `modcat-dumper` folder.
+2. Push the `modcat-dumper` folder to a GitHub repository.
+3. Go to [Vercel](https://vercel.com/) and import your repository.
+4. Click **Deploy**.
+
+> **Note on Free Tier Limits:** 
+> Vercel's free tier (Hobby) limits Serverless Function execution to 10 seconds. If a game dump takes longer than 10 seconds, the API will timeout. If this happens, you will need to upgrade to Vercel Pro (up to 300 seconds) or deploy the Next.js app to Render or Railway instead.
