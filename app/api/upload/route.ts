@@ -3,12 +3,6 @@ import { promises as fs } from "fs";
 import path from "path";
 import os from "os";
 
-// We disable Next.js body parser so we can read the raw chunk
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 export async function POST(req: NextRequest) {
   try {
